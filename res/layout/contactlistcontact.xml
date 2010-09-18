@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="fill_parent"
+    android:layout_height="wrap_content" android:paddingLeft="10px"
+    android:paddingRight="10px" android:paddingTop="8dip"
+    android:paddingBottom="8dip" >
+    <TextView android:id="@+id/contactlistpseudo"
+	android:layout_width="fill_parent" android:layout_height="wrap_content"
+	android:singleLine="true"
+	android:maxLines="1" android:textColor="@color/white"
+	android:drawablePadding="12px"
+	android:textSize="18sp" android:textStyle="bold" />
+
+    <TextView android:id="@+id/contactlistmsgperso"
+	android:layout_width="fill_parent" android:layout_height="wrap_content"
+	android:paddingLeft="30px" android:singleLine="true"
+	android:maxLines="1" android:linksClickable="false" android:autoLink="all"
+	android:scrollHorizontally="true" android:textColorLink="@color/white"
+	android:textSize="12sp" />
+</LinearLayout>

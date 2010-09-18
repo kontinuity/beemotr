@@ -1,0 +1,10 @@
+bin/*
+R.java
+doc/javadoc
+src/com/beem/project/beem/service/aidl/*.java
+gen/*
+local.properties
+**~
+**/.*.sw?
+.classpath
+.project
