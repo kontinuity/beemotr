@@ -89,7 +89,7 @@ public class ChatAdapter extends IChat.Stub {
     mMsgListener = createMessageListener();
     mAdaptee.addMessageListener(mMsgListener);
   }
-  
+
   MsgListener createMessageListener() {
     return new MsgListener();
   }

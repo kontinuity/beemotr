@@ -8,3 +8,4 @@ local.properties
 **/.*.sw?
 .classpath
 .project
+.settings

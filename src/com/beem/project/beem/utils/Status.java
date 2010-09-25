@@ -45,6 +45,7 @@
 package com.beem.project.beem.utils;
 
 import org.jivesoftware.smack.packet.Presence;
+
 import org.jivesoftware.smack.packet.Presence.Mode;
 
 /**
