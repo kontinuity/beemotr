@@ -37,6 +37,8 @@ public abstract class OTRMessage {
                                                            // messages
   public static final String MSG_QUERY_PREFIX = "?OTRv"; // Prefix of OTR query
                                                          // messages
+  public static final String MSG_BACKWARD_COMPATIBLE_QUERY_PREFIX = "?OTR?v"; // Prefix of OTR query
+                                                         // messages
   public static final String MSG_ERROR_PREFIX = "?OTR Error:"; // Prefix of OTR
                                                                // error messages
   public static final String MSG_FRAGMENT_PREFIX = "?OTR,"; // Prefix of OTR
@@ -96,7 +98,7 @@ public abstract class OTRMessage {
       }
     }
 
-    if (input.startsWith(MSG_QUERY_PREFIX)) {
+    if (input.startsWith(MSG_QUERY_PREFIX) || input.startsWith(MSG_BACKWARD_COMPATIBLE_QUERY_PREFIX)) {
       return new QueryMessage(input);
     }
 
@@ -138,8 +140,6 @@ public abstract class OTRMessage {
     if (input.startsWith(MSG_FRAGMENT_PREFIX)) {
       return new FragmentMessage(input);
     }
-    
-    d("OTRMessage.parse (Parsed message object)", otrMsg);
     return otrMsg;
   }
 

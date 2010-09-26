@@ -44,6 +44,7 @@
 
 package com.beem.project.beem.service;
 
+import static com.beem.project.beem.utils.CommonUtils.d;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -59,6 +60,7 @@ import android.util.Log;
 
 import com.beem.project.beem.service.aidl.IChat;
 import com.beem.project.beem.service.aidl.IMessageListener;
+import com.beem.project.beem.utils.CommonUtils;
 
 /**
  * An adapter for smack's Chat class.
@@ -201,6 +203,7 @@ public class ChatAdapter extends IChat.Stub {
   void addMessage(Message msg) {
     if (mMessages.size() == HISTORY_MAX_SIZE)
       mMessages.remove(0);
+    d("ChatAdapter.addMessage", msg.getBody());
     mMessages.add(msg);
   }
 
@@ -216,20 +219,23 @@ public class ChatAdapter extends IChat.Stub {
 
     @Override
     public void processMessage(Chat chat, org.jivesoftware.smack.packet.Message message) {
-      Message msg = new Message(message);
+      processMessage(chat, new Message(message));
+    }
+    
+    public void processMessage(Chat chat, Message message) {
       // TODO add que les message pas de type errors
-      ChatAdapter.this.addMessage(msg);
+      ChatAdapter.this.addMessage(message);
       final int n = mRemoteListeners.beginBroadcast();
       for (int i = 0; i < n; i++) {
         IMessageListener listener = mRemoteListeners.getBroadcastItem(i);
         try {
           if (listener != null)
-            listener.processMessage(ChatAdapter.this, msg);
+            listener.processMessage(ChatAdapter.this, message);
         } catch (RemoteException e) {
           Log.w(TAG, "Error while diffusing message to listener", e);
         }
       }
-      mRemoteListeners.finishBroadcast();
+      mRemoteListeners.finishBroadcast();      
     }
 
     /**

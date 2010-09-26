@@ -15,12 +15,20 @@ public class CommonUtils {
   public static final String TAG = "OTRBeemChat";
   
   public static void d(String from, Object... params) {
+    Log.d(TAG, generateLogMessage(from, params));
+  }
+
+  public static void e(String from, Throwable e, Object... params) {
+    Log.e(TAG, generateLogMessage(from, params), e);
+  }
+  
+  private static String generateLogMessage(String from, Object... params) {
     StringBuilder sb = new StringBuilder("[" + from + "] [");
     for (Object param : params) {
       sb.append('{').append(param).append('}');
     }
     sb.append(']');
-    Log.d(TAG, sb.toString());
+    return sb.toString();
   }
   
   public static String getHumanMessageState(int state) {

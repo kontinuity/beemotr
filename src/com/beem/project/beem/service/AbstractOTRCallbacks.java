@@ -61,6 +61,6 @@ public class AbstractOTRCallbacks implements OTRCallbacks {
   }
 
   public void handleMsgEvent(int msg_event, OTRContext context, String message) {
-    d("AbstractOTRCallbacks.handleMsgEvent", message);
+    d("AbstractOTRCallbacks.handleMsgEvent", msg_event, message);
   }
 }

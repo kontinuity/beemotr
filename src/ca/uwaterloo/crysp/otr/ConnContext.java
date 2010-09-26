@@ -514,6 +514,7 @@ public class ConnContext implements OTRContext {
   public StringTLV messageReceiving(String inMessage, OTRCallbacks callback) throws OTRException {
     
     OTRMessage message = OTRMessage.parse(inMessage);
+    d("OTRMessage.parse (Parsed message object)", message);
 
     /* Check the policy */
     int policy = callback.getOtrPolicy(this);
@@ -602,11 +603,18 @@ public class ConnContext implements OTRContext {
 
       case OTRMessage.MSG_REVEAL_SIGNATURE:
         if ((policy & Policy.ALLOW_V2) != 0) {
+          long start = System.currentTimeMillis();
           /* Get our private key */
           PrivKey privkey = us.getPrivKey(new Account(accountName, protocol), true);
+          d("ConnContext.messageReceiving (time_taken_to_get_priv_key)", (System.currentTimeMillis() - start));
           try {
+            start = System.currentTimeMillis();
             auth.handleRevealsig(message.getContent(), privkey);
+            d("ConnContext.messageReceiving (time_taken_to_handle_reveal)", (System.currentTimeMillis() - start));
+            start = System.currentTimeMillis();
             this.goEncrypted(callback);
+            d("ConnContext.messageReceiving (time_taken_to_go_encrypted)", (System.currentTimeMillis() - start));
+            d("ConnContext.messageReceiving (time_taken_to_go_encrypted)", (System.currentTimeMillis() - start));
             this.sendOrErrorAuth(false, callback);
           } catch (OTRException e) {
             this.sendOrErrorAuth(true, callback);
@@ -631,6 +639,7 @@ public class ConnContext implements OTRContext {
           ignore_message = 1;
         break;
       case OTRMessage.MSG_DATA:
+        d("ConnContext.messageReceiving (data_packet_message_state)", getHumanMessageState(msgState.getCurState()));
         switch (msgState.getCurState()) {
           case MsgState.ST_UNENCRYPTED:
           case MsgState.ST_FINISHED:

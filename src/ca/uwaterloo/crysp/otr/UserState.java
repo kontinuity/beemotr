@@ -20,10 +20,15 @@
 package ca.uwaterloo.crysp.otr;
 
 import static com.beem.project.beem.utils.CommonUtils.d;
+
 import java.util.Hashtable;
 
+import android.os.Debug;
 import ca.uwaterloo.crysp.otr.crypt.Provider;
-import ca.uwaterloo.crysp.otr.iface.*;
+import ca.uwaterloo.crysp.otr.iface.OTRCallbacks;
+import ca.uwaterloo.crysp.otr.iface.OTRContext;
+import ca.uwaterloo.crysp.otr.iface.OTRTLV;
+import ca.uwaterloo.crysp.otr.iface.StringTLV;
 
 /**
  * A UserState encapsulates the list of known fingerprints and the list of known
