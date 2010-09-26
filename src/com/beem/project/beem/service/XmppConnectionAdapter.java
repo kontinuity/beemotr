@@ -44,6 +44,7 @@
 
 package com.beem.project.beem.service;
 
+import static com.beem.project.beem.utils.CommonUtils.d;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.PacketListener;
@@ -235,6 +236,8 @@ public class XmppConnectionAdapter extends IXmppConnection.Stub {
           PrivacyListManager.getInstanceFor(mAdaptee));
       mService.resetStatus();
       mService.initJingle(mAdaptee);
+      
+      mService.setOwnerJID(this.getAdaptee().getUser());
 
       mApplication.setConnected(true);
       changeStatus(Status.CONTACT_STATUS_AVAILABLE,

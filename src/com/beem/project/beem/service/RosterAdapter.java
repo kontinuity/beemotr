@@ -44,7 +44,9 @@
 
 package com.beem.project.beem.service;
 
+import static com.beem.project.beem.utils.CommonUtils.d;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -105,6 +107,9 @@ public class RosterAdapter extends com.beem.project.beem.service.aidl.IRoster.St
    */
   @Override
   public Contact addContact(String user, String name, String[] groups) throws RemoteException {
+    
+    d("RosterAdapter.addContact", user, name, Arrays.toString(groups));
+    
     RosterEntry contact = mAdaptee.getEntry(user);
     try {
       mAdaptee.createEntry(user, name, groups);

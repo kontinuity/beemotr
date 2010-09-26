@@ -19,7 +19,7 @@
 
 package ca.uwaterloo.crysp.otr.message;
 
-import static com.beem.project.beem.utils.L.d;
+import static com.beem.project.beem.utils.CommonUtils.d;
 import ca.uwaterloo.crysp.otr.InBuf;
 import ca.uwaterloo.crysp.otr.OTRException;
 import ca.uwaterloo.crysp.otr.OutBuf;
@@ -84,8 +84,6 @@ public abstract class OTRMessage {
   public static OTRMessage parse(String input) throws OTRException {
     OTRMessage otrMsg = null;
     
-    d("OTRMessage - parse (Raw input)", input);
-    
     // If input doesn't start with "?OTR", see if its a tagged plaintext message
     if (!input.startsWith("?OTR")) {
       // tagged message prefix was found
@@ -109,7 +107,7 @@ public abstract class OTRMessage {
       short protocolVersion = (short)stream.readShort();
       byte messageType = stream.readByte();
       
-      d("OTRMessage - parse (protocol, message_type)", protocolVersion, messageType);
+      d("OTRMessage.parse (message_type)", messageType);
       
       switch (messageType) {
         case MSG_DH_COMMIT:
@@ -141,7 +139,7 @@ public abstract class OTRMessage {
       return new FragmentMessage(input);
     }
     
-    d("OTRMessage - parse (Parsed message object)", otrMsg.getClass().getName(), otrMsg);
+    d("OTRMessage.parse (Parsed message object)", otrMsg);
     return otrMsg;
   }
 

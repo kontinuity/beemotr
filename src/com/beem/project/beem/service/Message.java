@@ -334,4 +334,8 @@ public class Message implements Parcelable {
     return 0;
   }
 
+  public String getProtocol() {
+    return "xmpp";
+  }
+
 }

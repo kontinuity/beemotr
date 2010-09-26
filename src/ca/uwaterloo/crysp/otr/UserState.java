@@ -19,6 +19,7 @@
 
 package ca.uwaterloo.crysp.otr;
 
+import static com.beem.project.beem.utils.CommonUtils.d;
 import java.util.Hashtable;
 
 import ca.uwaterloo.crysp.otr.crypt.Provider;
@@ -73,9 +74,12 @@ public class UserState implements ca.uwaterloo.crysp.otr.iface.OTRInterface {
     Buddy bd = new Buddy(acc, recipient);
     ConnContext conn = (ConnContext)contexts.get(bd);
     if (conn == null) {
+      d("ConnContext.getConnContext", "Creating new context", username, protocol, recipient);
       ConnContext newConn = new ConnContext(username, recipient, protocol, crypt, this);
       contexts.put(bd, newConn);
       conn = newConn;
+    } else {
+      d("ConnContext.getConnContext", "Using existing context", username, protocol, recipient);
     }
     return conn;
   }

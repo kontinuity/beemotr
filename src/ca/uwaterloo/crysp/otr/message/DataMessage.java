@@ -19,6 +19,8 @@
 
 package ca.uwaterloo.crysp.otr.message;
 
+import java.util.Arrays;
+
 import ca.uwaterloo.crysp.otr.CTR;
 import ca.uwaterloo.crysp.otr.Data;
 import ca.uwaterloo.crysp.otr.InBuf;
@@ -197,6 +199,14 @@ public class DataMessage extends OTREncodedMessage {
       buf[i] = (byte)ret[i];
     }
     return buf;
+  }
+
+  @Override
+  public String toString() {
+    return "DataMessage [flags=" + flags + ", senderKeyId=" + senderKeyId + ", recipientKeyId="
+        + recipientKeyId + ", DHy=" + DHy + ", ctrInit=" + Arrays.toString(ctrInit)
+        + ", encryptedMessage=" + encryptedMessage + ", macAuthenticator="
+        + Arrays.toString(macAuthenticator) + ", oldMacKeys=" + oldMacKeys + "]";
   }
 
 }

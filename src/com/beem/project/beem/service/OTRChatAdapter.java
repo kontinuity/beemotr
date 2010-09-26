@@ -1,7 +1,8 @@
 
 package com.beem.project.beem.service;
 
-import static com.beem.project.beem.utils.L.d;
+import static com.beem.project.beem.utils.CommonUtils.d;
+import static com.beem.project.beem.utils.CommonUtils.getJIDWithoutResource;
 
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.XMPPException;
@@ -12,12 +13,15 @@ import ca.uwaterloo.crysp.otr.iface.OTRCallbacks;
 import ca.uwaterloo.crysp.otr.iface.Policy;
 import ca.uwaterloo.crysp.otr.iface.StringTLV;
 
-import com.beem.project.beem.utils.L;
+import com.beem.project.beem.utils.CommonUtils;
 
 public class OTRChatAdapter extends ChatAdapter {
 
-  public OTRChatAdapter(Chat chat) {
+  String ownerJid;
+
+  public OTRChatAdapter(Chat chat, String ownerJid) {
     super(chat);
+    this.ownerJid = getJIDWithoutResource(ownerJid);
   }
 
   @Override
@@ -27,13 +31,13 @@ public class OTRChatAdapter extends ChatAdapter {
 
   @Override
   public void sendMessage(Message message) throws RemoteException {
-    
-    SendingOTRCallbacks cb = new SendingOTRCallbacks(this, message);
+
+    DefaultOTRCallbacks cb = new DefaultOTRCallbacks(this);
     OTRManager otrManager = OTRManager.getInstance();
     try {
-      otrManager.getInterface().getContext("arif.amirani@gmail.com/Adium04E7102", "xmpp", "arif.amirani@gmail.com/Adium04E7102");
-      otrManager.getInterface().messageSending("arif.amirani@gmail.com/Adium04E7102", "xmpp", "arif.amirani@gmail.com/Adium04E7102",
-          message.getBody(), otrManager.getTlvs(), Policy.FRAGMENT_SEND_ALL, cb);
+      otrManager.getInterface().messageSending(ownerJid, message.getProtocol(),
+          getJIDWithoutResource(this.getParticipant().getJID()), message.getBody(), null,
+          Policy.FRAGMENT_SEND_ALL, cb);
     } catch (Exception e) {
       e.printStackTrace();
       d("OTRChatAdapter.sendMessage", message, e.getMessage(), "Sending message in plaintext");
@@ -56,15 +60,14 @@ public class OTRChatAdapter extends ChatAdapter {
       mAdaptee.sendMessage(send);
       mMessages.add(message);
     } catch (XMPPException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
   }
 
   class OTRMessageListener extends MsgListener {
-    
+
     private OTRChatAdapter sender;
-    
+
     public OTRMessageListener(OTRChatAdapter sender) {
       this.sender = sender;
     }
@@ -73,63 +76,45 @@ public class OTRChatAdapter extends ChatAdapter {
     public void processMessage(Chat chat, org.jivesoftware.smack.packet.Message message) {
 
       try {
-        d("OTRMessageListener.processMessage", "Received message: " + message.getBody());
-        OTRCallbacks cb = new ReceivingOTRCallbacks(sender);
-        StringTLV stlv = OTRManager.getInstance().getInterface().messageReceiving(message.getFrom(), "xmpp", message.getFrom(), message.getBody(), cb);
+        d("OTRMessageListener.processMessage (raw message - will send to OTR processor)",
+            message.getBody());
+        OTRCallbacks cb = new DefaultOTRCallbacks(sender);
+        StringTLV stlv = OTRManager
+            .getInstance()
+            .getInterface()
+            .messageReceiving(getJIDWithoutResource(message.getTo()), "xmpp",
+                getJIDWithoutResource(message.getFrom()), message.getBody(), cb);
         if (stlv != null) {
-          d("OTRMessageListener.processMessage", "Message from OTR (for user): " + stlv.msg);
+          d("OTRMessageListener.processMessage (processed message for user)", stlv.msg);
+          message.setBody(stlv.msg);
+          super.processMessage(chat, message);
         } else {
-          d("OTRMessageListener.processMessage", "Message from OTR (not for user): Callback should be called");
+          d("OTRMessageListener.processMessage (processed message not for user)",
+              "OTR may have already responded");
         }
       } catch (Exception e) {
         d("OTRMessageListener.processMessage", "Could not receive message", e);
-        Log.e(L.TAG, "Could not receive message", e);
-      }
-    }
-
-    public void processOtrMessage(Chat chat, org.jivesoftware.smack.packet.Message message) {
-      super.processMessage(chat, message);
-    }
-
-  }
-
-  private class ReceivingOTRCallbacks extends AbstractOTRCallbacks {
-
-    private final OTRChatAdapter sender;
-
-    public ReceivingOTRCallbacks(OTRChatAdapter sender) {
-      this.sender = sender;
-    }
-
-    @Override
-    public void injectMessage(String accName, String prot, String rec, String msg) {
-      d("ReceivingOTRCallbacks.injectMessage", accName, prot, rec, msg);
-      try {
-        Message message = new Message(accName, Message.MSG_TYPE_CHAT);
-        message.setBody(msg);
-        sender.sendMessage(message);
-      } catch (RemoteException e) {
-        d("ReceivingOTRCallbacks.injectMessage", "Could not send OTR message to " + accName, e.getMessage());
+        Log.e(CommonUtils.TAG, "Could not receive message", e);
+        message.setBody("Unable to receive message from user [" + e.getMessage() + "]");
+        super.processMessage(chat, message);
       }
     }
   }
 
-  private class SendingOTRCallbacks extends AbstractOTRCallbacks {
+  private class DefaultOTRCallbacks extends AbstractOTRCallbacks {
 
-    private final OTRChatAdapter otrChatAdapter;
-    private final Message message;
+    private OTRChatAdapter otrChatAdapter;
 
-    public SendingOTRCallbacks(OTRChatAdapter otrChatAdapter, Message message) {
-      this.otrChatAdapter = otrChatAdapter;
-      this.message = message;
+    public DefaultOTRCallbacks(OTRChatAdapter adapter) {
+      this.otrChatAdapter = adapter;
     }
 
     @Override
     public void injectMessage(String accName, String prot, String rec, String msg) {
-      d("SendingOTRCallbacks.injectMessage", accName, prot, rec, msg);
+      d("DefaultOTRCallbacks.injectMessage (message to buddy)", accName, prot, rec, msg);
+      Message message = new Message(getJIDWithoutResource(accName), Message.MSG_TYPE_CHAT);
       message.setBody(msg);
       otrChatAdapter.sendOtrMessage(message);
     }
   }
-
 }

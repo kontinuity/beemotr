@@ -19,6 +19,8 @@
 
 package ca.uwaterloo.crysp.otr;
 
+import static com.beem.project.beem.utils.CommonUtils.encode;
+
 public class Data {
   private byte[] value; // the value of data
 
@@ -57,5 +59,10 @@ public class Data {
    */
   public boolean equals(Data other) {
     return Util.arrayEquals(this.value, other.value);
+  }
+
+  @Override
+  public String toString() {
+    return "Data [value=" + encode(value) + "]";
   }
 }

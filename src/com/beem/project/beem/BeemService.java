@@ -119,6 +119,8 @@ public class BeemService extends Service {
 
   private boolean mOnOffReceiverIsRegistered;
 
+  private String ownerJID;
+
   /**
    * Constructor.
    */
@@ -459,5 +461,13 @@ public class BeemService extends Service {
           mConnection.changeStatus(mOldMode, mOldStatus);
       }
     }
+  }
+
+  public void setOwnerJID(String user) {
+    ownerJID = user;
+  }
+  
+  public String getOwnerJID() {
+    return ownerJID;
   }
 }

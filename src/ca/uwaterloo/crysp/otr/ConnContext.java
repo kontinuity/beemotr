@@ -19,11 +19,12 @@
 
 package ca.uwaterloo.crysp.otr;
 
-import static com.beem.project.beem.utils.L.d;
+import static com.beem.project.beem.utils.CommonUtils.d;
+import static com.beem.project.beem.utils.CommonUtils.getHumanFragmentState;
+import static com.beem.project.beem.utils.CommonUtils.getHumanMessageState;
 
 import java.util.Hashtable;
 
-import android.util.Log;
 import ca.uwaterloo.crysp.otr.crypt.DHPublicKey;
 import ca.uwaterloo.crysp.otr.crypt.DHSesskeys;
 import ca.uwaterloo.crysp.otr.crypt.KeyPair;
@@ -64,6 +65,7 @@ public class ConnContext implements OTRContext {
 
   AuthInfo auth;
 
+  @SuppressWarnings("rawtypes")
   Hashtable fingerprintTable = new Hashtable(); // The table of Fingerprints
   // entries
   FingerPrint activeFingerprint; // Which fingerprint is in use now?
@@ -149,6 +151,7 @@ public class ConnContext implements OTRContext {
     return protocol;
   }
 
+  @SuppressWarnings("unchecked")
   FingerPrint findFingerPrint(byte[] fingerprint, boolean add, OTRCallbacks callback) {
     String key = new String(fingerprint);
     FingerPrint ret = (FingerPrint)fingerprintTable.get(key);
@@ -344,12 +347,11 @@ public class ConnContext implements OTRContext {
       return this.fragmentAndSend(ret, fragPolicy, callback);
     }
     
-    d("ConnContext - messageSending", msgState.getCurState());
+    d("ConnContext.messageSending (message_state)", getHumanMessageState(msgState.getCurState()));
     switch (msgState.getCurState()) {
       case MsgState.ST_UNENCRYPTED:
-        d("ConnContext - messageSending", (policy & Policy.REQUIRE_ENCRYPTION));
         if ((policy & Policy.REQUIRE_ENCRYPTION) != 0) {
-          d("ConnContext - messageSending", "We're trying to send an unencrypted message with a policy that disallows that. Don't do that, but try to start up OTR instead.");
+          d("ConnContext.messageSending", "We're trying to send an unencrypted message with a policy that disallows that. Don't do that, but try to start up OTR instead.");
           /*
            * We're trying to send an unencrypted message with a policy that
            * disallows that. Don't do that, but try to start up OTR instead.
@@ -365,7 +367,7 @@ public class ConnContext implements OTRContext {
           return this.fragmentAndSend(ret, fragPolicy, callback);
         } else {
           if ((policy & Policy.SEND_WHITESPACE_TAG) != 0 && otr_offer != OFFER_REJECTED) {
-            d("ConnContext - messageSending", "See if this user can speak OTR. Append the OTR_MESSAGE_TAG to the plaintext message, and see if he responds.");
+            d("ConnContext.messageSending", "See if this user can speak OTR. Append the OTR_MESSAGE_TAG to the plaintext message, and see if he responds.");
             /*
              * See if this user can speak OTR. Append the OTR_MESSAGE_TAG to the
              * plaintext message, and see if he responds.
@@ -516,13 +518,12 @@ public class ConnContext implements OTRContext {
     /* Check the policy */
     int policy = callback.getOtrPolicy(this);
     
-    d("ConnContext - messageReceving", policy, Policy.VERSION_MASK, (policy & Policy.VERSION_MASK));
     /* Should we go on at all? */
     if ((policy & Policy.VERSION_MASK) == 0) {
       return null;
     }
     
-    d("ConnContext - messageReceving (fragment_state)", Proto.fragmentAccumulate(this, new String(message.getContent())));
+    d("ConnContext.messageReceving (fragment_state)", getHumanFragmentState(Proto.fragmentAccumulate(this, new String(message.getContent()))));
     // See if we have a fragment
     switch (Proto.fragmentAccumulate(this, new String(message.getContent()))) {
       case Proto.FRAGMENT_UNFRAGMENTED:
@@ -549,7 +550,7 @@ public class ConnContext implements OTRContext {
       }
     }
     
-    d("ConnContext - messageReceiving (message_type, policy_state, otr_offer", msgtype, policy & Policy.SEND_WHITESPACE_TAG, otr_offer);
+    d("ConnContext.messageReceiving (message_type, policy_state, otr_offer", msgtype, policy & Policy.SEND_WHITESPACE_TAG, otr_offer);
 
     gone_encrypted = 0;
     ignore_message = -1;
@@ -572,7 +573,7 @@ public class ConnContext implements OTRContext {
           ignore_message = 1;
         break;
       case OTRMessage.MSG_DH_COMMIT:
-        d("ConnContext - messageReceiving (dhcommit_v2_allowed)", policy & Policy.ALLOW_V2);
+        d("ConnContext.messageReceiving (dhcommit_v2_allowed)", policy & Policy.ALLOW_V2);
         if ((policy & Policy.ALLOW_V2) != 0) {
           try {
             auth.handleCommit(message.getContent(), null);

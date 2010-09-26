@@ -44,6 +44,8 @@
 
 package com.beem.project.beem.service;
 
+import static com.beem.project.beem.utils.CommonUtils.getOwnerJID;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -179,7 +181,7 @@ public class BeemChatManager extends IChatManager.Stub {
     if (mChats.containsKey(key)) {
       return mChats.get(key);
     }
-    ChatAdapter res = new OTRChatAdapter(chat);
+    ChatAdapter res = new OTRChatAdapter(chat, mService.getOwnerJID());
     Log.d(TAG, "getChat put " + key);
     mChats.put(key, res);
     return res;
