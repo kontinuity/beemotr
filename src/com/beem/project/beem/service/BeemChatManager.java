@@ -44,7 +44,7 @@
 
 package com.beem.project.beem.service;
 
-import static com.beem.project.beem.utils.CommonUtils.getOwnerJID;
+import static com.beem.project.beem.utils.CommonUtils.isOTRDisabled;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -58,7 +58,6 @@ import org.jivesoftware.smack.ChatManagerListener;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
@@ -181,7 +180,14 @@ public class BeemChatManager extends IChatManager.Stub {
     if (mChats.containsKey(key)) {
       return mChats.get(key);
     }
-    ChatAdapter res = new OTRChatAdapter(chat, mService.getOwnerJID());
+    
+    ChatAdapter res;
+    if (isOTRDisabled(mService.getServicePreference())) {
+      res = new ChatAdapter(chat);
+    } else {
+      res = new OTRChatAdapter(chat, mService.getOwnerJID());
+    }
+    
     Log.d(TAG, "getChat put " + key);
     mChats.put(key, res);
     return res;

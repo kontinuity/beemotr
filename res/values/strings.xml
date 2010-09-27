@@ -81,6 +81,8 @@
 	<string name="contact_list_preferences">Buddy list</string>
 	<string name="contact_list_preferences_sum">A set of display options for your buddy list
 	</string>
+	<string name="settings_disable_otr">Disable OTR</string>
+	<string name="settings_disable_otr_sum">Check this option to completely disable OTR</string>	
 	<string name="CLP_hide_groups">Hide groups</string>	
 	<string name="CLP_hide_groups_sum">Check this option to hide groups</string>
 	<string name="CLP_hidden_contact">Hide buddies</string>

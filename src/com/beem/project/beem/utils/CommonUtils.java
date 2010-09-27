@@ -63,6 +63,10 @@ public class CommonUtils {
     return preferences.getString(BeemApplication.ACCOUNT_USERNAME_KEY, "");
   }
   
+  public static boolean isOTRDisabled(SharedPreferences preferences) {
+    return preferences.getBoolean("settings_key_disable_otr", false);
+  }
+   
   public static String getJIDWithoutResource(String jid) {
     if (jid != null && jid.length() > 0 && jid.lastIndexOf("/") > 1) 
       return jid.substring(0, jid.lastIndexOf("/"));

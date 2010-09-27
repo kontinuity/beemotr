@@ -514,7 +514,7 @@ public class ConnContext implements OTRContext {
   public StringTLV messageReceiving(String inMessage, OTRCallbacks callback) throws OTRException {
     
     OTRMessage message = OTRMessage.parse(inMessage);
-    d("OTRMessage.parse (Parsed message object)", message);
+    d("ConnContext.messageReceiving (Parsed message object)", message);
 
     /* Check the policy */
     int policy = callback.getOtrPolicy(this);
@@ -847,6 +847,14 @@ public class ConnContext implements OTRContext {
               message.toString());
         }
         ignore_message = 1;
+        break;
+      case OTRMessage.MSG_PLAINTEXT:
+        if (this.msgState.getCurState() == MsgState.ST_UNENCRYPTED
+            && (policy & Policy.REQUIRE_ENCRYPTION) == 0) {
+          StringTLV stlv = new StringTLV();
+          stlv.msg = inMessage;
+          return stlv;
+        }
         break;
       default:
         /*

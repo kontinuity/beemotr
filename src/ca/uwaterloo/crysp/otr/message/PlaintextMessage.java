@@ -56,4 +56,9 @@ public class PlaintextMessage extends OTRMessage {
   public byte[] getContent() throws OTRException {
     return contents.getBytes();
   }
+
+  @Override
+  public String toString() {
+    return "PlaintextMessage [contents=" + contents + "]";
+  }
 }

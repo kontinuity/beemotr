@@ -8,6 +8,9 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
 	android:shouldDisableView="true" android:selectable="true">
 	<PreferenceCategory android:title="@string/general_preferences">
+		<CheckBoxPreference android:title="@string/settings_disable_otr"
+			android:defaultValue="false" android:summary="@string/settings_disable_otr_sum"
+			android:key="settings_key_disable_otr" />		
 		<PreferenceScreen android:key="contact_list"
 			android:title="@string/contact_list_preferences" android:summary="@string/contact_list_preferences_sum">
 			<CheckBoxPreference android:title="@string/CLP_hidden_contact"

@@ -11,6 +11,7 @@ import org.jivesoftware.smack.XMPPException;
 import android.os.RemoteException;
 import ca.uwaterloo.crysp.otr.iface.OTRCallbacks;
 import ca.uwaterloo.crysp.otr.iface.OTRContext;
+import ca.uwaterloo.crysp.otr.iface.OTRInterface;
 import ca.uwaterloo.crysp.otr.iface.Policy;
 import ca.uwaterloo.crysp.otr.iface.StringTLV;
 
@@ -37,7 +38,7 @@ public class OTRChatAdapter extends ChatAdapter {
       otrManager.getInterface().messageSending(ownerJid, message.getProtocol(),
           getJIDWithoutResource(this.getParticipant().getJID()), message.getBody(), null,
           Policy.FRAGMENT_SEND_ALL, cb);
-      //TODO: May not be a good idea to queue before sending
+      // TODO: May not be a good idea to queue before sending
       mMessages.add(message);
     } catch (Exception e) {
       d("OTRChatAdapter.sendMessage", message, e.getMessage(), "Sending message in plaintext");
@@ -75,28 +76,30 @@ public class OTRChatAdapter extends ChatAdapter {
     public void processMessage(Chat chat, org.jivesoftware.smack.packet.Message message) {
 
       try {
-        d("OTRMessageListener.processMessage (raw message - will send to OTR processor)",
-            message.getBody());
-        OTRCallbacks cb = new DefaultOTRCallbacks(sender);
-        StringTLV stlv = OTRManager
-            .getInstance()
-            .getInterface()
-            .messageReceiving(getJIDWithoutResource(message.getTo()), "xmpp",
-                getJIDWithoutResource(message.getFrom()), message.getBody(), cb);
-        if (stlv != null) {
-          d("OTRMessageListener.processMessage (processed message for user)", stlv.msg);
-          Message plainTextMessage = new Message(message);
-          plainTextMessage.setBody(stlv.msg);
-          super.processMessage(chat, plainTextMessage);
+        if (message.getBody() != null) {
+          d("OTRMessageListener.processMessage (raw message - will send to OTR processor)",
+              message.getBody());
+          OTRCallbacks cb = new DefaultOTRCallbacks(sender);
+          OTRInterface otrInterface = OTRManager.getInstance().getInterface();
+          StringTLV stlv = otrInterface.messageReceiving(getJIDWithoutResource(message.getTo()),
+              "xmpp", getJIDWithoutResource(message.getFrom()), message.getBody(), cb);
+          if (stlv != null) {
+            d("OTRMessageListener.processMessage (processed message for user)", stlv.msg);
+            Message plainTextMessage = new Message(message);
+            plainTextMessage.setBody(stlv.msg);
+            super.processMessage(chat, plainTextMessage);
+          } else {
+            d("OTRMessageListener.processMessage (processed message not for user)",
+                "OTR may have already responded");
+          }
         } else {
-          d("OTRMessageListener.processMessage (processed message not for user)",
-              "OTR may have already responded");
+          d("OTRMessageListener.processMessage (raw message - null message. Will be ignored)");
         }
       } catch (Exception e) {
         e("OTRChatAdapter.processMessage", e, "Could not receive message");
         Message plainTextMessage = new Message(message);
         plainTextMessage.setBody("Unable to receive message from user [" + e.getMessage() + "]");
-        super.processMessage(chat, plainTextMessage);        
+        super.processMessage(chat, plainTextMessage);
       }
     }
   }
@@ -108,19 +111,20 @@ public class OTRChatAdapter extends ChatAdapter {
     public DefaultOTRCallbacks(OTRChatAdapter adapter) {
       this.otrChatAdapter = adapter;
     }
-    
+
     @Override
     public String errorMessage(OTRContext context, int err_code) {
       handleMsgEvent(err_code, context, null);
       return null;
-    }    
-    
+    }
+
     @Override
     public void handleMsgEvent(int msg_event, OTRContext context, String message) {
-      switch(msg_event) {
+      switch (msg_event) {
         case OTRCallbacks.OTRL_ERRCODE_MSG_NOT_IN_PRIVATE:
           try {
-            otrChatAdapter.addMessage(new Message(this.otrChatAdapter.getParticipant().getJID(), Message.MSG_TYPE_ERROR));
+            otrChatAdapter.addMessage(new Message(this.otrChatAdapter.getParticipant().getJID(),
+                Message.MSG_TYPE_ERROR));
           } catch (RemoteException e) {
             e("DefaultOTRCallbacks.handleMsgEvent", e, msg_event, context, message);
           }
