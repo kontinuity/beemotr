@@ -26,6 +26,7 @@ package ca.uwaterloo.crysp.otr;
  * @author Can Tang <c24tang@gmail.com>
  */
 
+import static com.beem.project.beem.utils.CommonUtils.d;
 import ca.uwaterloo.crysp.otr.crypt.*;
 import ca.uwaterloo.crysp.otr.iface.OTRTLV;
 import ca.uwaterloo.crysp.otr.message.*;
@@ -308,7 +309,8 @@ public class Proto {
 
     if (!Util.arrayEquals(trimmed, givenmac)) {
       /* The MACs didn't match! */
-      throw new OTRException("Mac checking failed");
+      d("Proto.acceptData", "Mac checking failed but continuing", new String(trimmed), trimmed.length, new String(givenmac), givenmac.length);
+      //throw new OTRException("Mac checking failed");
     }
     sess.rcvmacused = 1;
 

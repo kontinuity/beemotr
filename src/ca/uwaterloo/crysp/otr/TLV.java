@@ -131,10 +131,9 @@ public class TLV extends OTRTLV {
 
   /** Find the first TLV of the given type. */
   public OTRTLV find(OTRTLV[] tlvs, int type) {
-    for (int j = 0; j < tlvs.length; ++j) {
-      if (((TLV)tlvs[j]).type == type) {
-        return tlvs[j];
-      }
+    for (OTRTLV tlv : tlvs) {
+      if (tlv.getType() == type)
+        return tlv;
     }
     return null;
   }
@@ -161,6 +160,15 @@ public class TLV extends OTRTLV {
   /** Construct an array of TLVs from the given data. */
   public OTRTLV[] parse(byte[] buf) throws OTRException {
     return new TLV().parse(buf, 0, buf.length);
+  }
+  
+  public static String tlvsAsString(OTRTLV[] tlvs) {
+    StringBuilder sb = new StringBuilder();
+    for (OTRTLV tlv : tlvs) {
+      sb.append('[').append(tlv.getType()).append('=').append(new String(tlv.getValue())).append(']');
+      sb.append(' ');
+    }
+    return sb.toString();
   }
 
   /* Unit tests */

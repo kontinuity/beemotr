@@ -19,7 +19,10 @@
 
 package ca.uwaterloo.crysp.otr.iface;
 
+import com.beem.project.beem.service.Message;
+
 public class StringTLV {
   public String msg;
   public OTRTLV[] tlvs;
+  public int type = Message.MSG_TYPE_CHAT;
 }

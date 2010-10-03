@@ -35,6 +35,7 @@ public class OTRChatAdapter extends ChatAdapter {
     DefaultOTRCallbacks cb = new DefaultOTRCallbacks(this);
     OTRManager otrManager = OTRManager.getInstance();
     try {
+      d("OTRChatAdapter.sendMessage (raw message - will send to OTR processor)", message.getBody());
       otrManager.getInterface().messageSending(ownerJid, message.getProtocol(),
           getJIDWithoutResource(this.getParticipant().getJID()), message.getBody(), null,
           Policy.FRAGMENT_SEND_ALL, cb);
@@ -87,6 +88,7 @@ public class OTRChatAdapter extends ChatAdapter {
             d("OTRMessageListener.processMessage (processed message for user)", stlv.msg);
             Message plainTextMessage = new Message(message);
             plainTextMessage.setBody(stlv.msg);
+            plainTextMessage.setType(stlv.type);
             super.processMessage(chat, plainTextMessage);
           } else {
             d("OTRMessageListener.processMessage (processed message not for user)",
@@ -98,7 +100,8 @@ public class OTRChatAdapter extends ChatAdapter {
       } catch (Exception e) {
         e("OTRChatAdapter.processMessage", e, "Could not receive message");
         Message plainTextMessage = new Message(message);
-        plainTextMessage.setBody("Unable to receive message from user [" + e.getMessage() + "]");
+        plainTextMessage.setBody("Unable to receive message from user. [" + e.getMessage() + "]");
+        plainTextMessage.setType(Message.MSG_TYPE_ERROR);
         super.processMessage(chat, plainTextMessage);
       }
     }

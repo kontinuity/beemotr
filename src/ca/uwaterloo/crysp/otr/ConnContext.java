@@ -20,10 +20,13 @@
 package ca.uwaterloo.crysp.otr;
 
 import static com.beem.project.beem.utils.CommonUtils.d;
+import static com.beem.project.beem.utils.CommonUtils.e;
 import static com.beem.project.beem.utils.CommonUtils.getHumanFragmentState;
 import static com.beem.project.beem.utils.CommonUtils.getHumanMessageState;
 
 import java.util.Hashtable;
+
+import com.beem.project.beem.service.Message;
 
 import ca.uwaterloo.crysp.otr.crypt.DHPublicKey;
 import ca.uwaterloo.crysp.otr.crypt.DHSesskeys;
@@ -346,12 +349,13 @@ public class ConnContext implements OTRContext {
         return ret;
       return this.fragmentAndSend(ret, fragPolicy, callback);
     }
-    
+
     d("ConnContext.messageSending (message_state)", getHumanMessageState(msgState.getCurState()));
     switch (msgState.getCurState()) {
       case MsgState.ST_UNENCRYPTED:
         if ((policy & Policy.REQUIRE_ENCRYPTION) != 0) {
-          d("ConnContext.messageSending", "We're trying to send an unencrypted message with a policy that disallows that. Don't do that, but try to start up OTR instead.");
+          d("ConnContext.messageSending",
+              "We're trying to send an unencrypted message with a policy that disallows that. Don't do that, but try to start up OTR instead.");
           /*
            * We're trying to send an unencrypted message with a policy that
            * disallows that. Don't do that, but try to start up OTR instead.
@@ -367,7 +371,8 @@ public class ConnContext implements OTRContext {
           return this.fragmentAndSend(ret, fragPolicy, callback);
         } else {
           if ((policy & Policy.SEND_WHITESPACE_TAG) != 0 && otr_offer != OFFER_REJECTED) {
-            d("ConnContext.messageSending", "See if this user can speak OTR. Append the OTR_MESSAGE_TAG to the plaintext message, and see if he responds.");
+            d("ConnContext.messageSending",
+                "See if this user can speak OTR. Append the OTR_MESSAGE_TAG to the plaintext message, and see if he responds.");
             /*
              * See if this user can speak OTR. Append the OTR_MESSAGE_TAG to the
              * plaintext message, and see if he responds.
@@ -512,19 +517,20 @@ public class ConnContext implements OTRContext {
    * message, and no message should be delivered to the user.
    */
   public StringTLV messageReceiving(String inMessage, OTRCallbacks callback) throws OTRException {
-    
+
     OTRMessage message = OTRMessage.parse(inMessage);
     d("ConnContext.messageReceiving (Parsed message object)", message);
 
     /* Check the policy */
     int policy = callback.getOtrPolicy(this);
-    
+
     /* Should we go on at all? */
     if ((policy & Policy.VERSION_MASK) == 0) {
       return null;
     }
-    
-    d("ConnContext.messageReceving (fragment_state)", getHumanFragmentState(Proto.fragmentAccumulate(this, new String(message.getContent()))));
+
+    d("ConnContext.messageReceving (fragment_state)",
+        getHumanFragmentState(Proto.fragmentAccumulate(this, new String(message.getContent()))));
     // See if we have a fragment
     switch (Proto.fragmentAccumulate(this, new String(message.getContent()))) {
       case Proto.FRAGMENT_UNFRAGMENTED:
@@ -541,7 +547,7 @@ public class ConnContext implements OTRContext {
     }
 
     byte msgtype = message.getType();
-    
+
     /* See if they responded to our OTR offer */
     if ((policy & Policy.SEND_WHITESPACE_TAG) != 0) {
       if (msgtype != OTRMessage.MSG_NOTOTR) {
@@ -550,8 +556,9 @@ public class ConnContext implements OTRContext {
         otr_offer = OFFER_REJECTED;
       }
     }
-    
-    d("ConnContext.messageReceiving (message_type, policy_state, otr_offer", msgtype, policy & Policy.SEND_WHITESPACE_TAG, otr_offer);
+
+    d("ConnContext.messageReceiving (message_type, policy_state, otr_offer", msgtype, policy
+        & Policy.SEND_WHITESPACE_TAG, otr_offer);
 
     gone_encrypted = 0;
     ignore_message = -1;
@@ -606,15 +613,19 @@ public class ConnContext implements OTRContext {
           long start = System.currentTimeMillis();
           /* Get our private key */
           PrivKey privkey = us.getPrivKey(new Account(accountName, protocol), true);
-          d("ConnContext.messageReceiving (time_taken_to_get_priv_key)", (System.currentTimeMillis() - start));
+          d("ConnContext.messageReceiving (time_taken_to_get_priv_key)",
+              (System.currentTimeMillis() - start));
           try {
             start = System.currentTimeMillis();
             auth.handleRevealsig(message.getContent(), privkey);
-            d("ConnContext.messageReceiving (time_taken_to_handle_reveal)", (System.currentTimeMillis() - start));
+            d("ConnContext.messageReceiving (time_taken_to_handle_reveal)",
+                (System.currentTimeMillis() - start));
             start = System.currentTimeMillis();
             this.goEncrypted(callback);
-            d("ConnContext.messageReceiving (time_taken_to_go_encrypted)", (System.currentTimeMillis() - start));
-            d("ConnContext.messageReceiving (time_taken_to_go_encrypted)", (System.currentTimeMillis() - start));
+            d("ConnContext.messageReceiving (time_taken_to_go_encrypted)",
+                (System.currentTimeMillis() - start));
+            d("ConnContext.messageReceiving (time_taken_to_go_encrypted)",
+                (System.currentTimeMillis() - start));
             this.sendOrErrorAuth(false, callback);
           } catch (OTRException e) {
             this.sendOrErrorAuth(true, callback);
@@ -639,7 +650,8 @@ public class ConnContext implements OTRContext {
           ignore_message = 1;
         break;
       case OTRMessage.MSG_DATA:
-        d("ConnContext.messageReceiving (data_packet_message_state)", getHumanMessageState(msgState.getCurState()));
+        d("ConnContext.messageReceiving (data_packet_message_state)",
+            getHumanMessageState(msgState.getCurState()));
         switch (msgState.getCurState()) {
           case MsgState.ST_UNENCRYPTED:
           case MsgState.ST_FINISHED:
@@ -650,13 +662,16 @@ public class ConnContext implements OTRContext {
             callback.injectMessage(accountName, protocol, recName, err_msg);
             break;
           case MsgState.ST_ENCRYPTED:
+
             byte[] res;
             StringTLV stlv = new StringTLV();
             OTRTLV[] tlvs;
             try {
               DataMessage dm = (DataMessage)message;
               res = Proto.acceptData(this, dm, null);
+              d("ConnContext.messageReceiving (accepted data)", new String(res));
             } catch (OTRException otre) {
+              e("ConnContext.messageReceiving", otre, "Message un readable");
               callback.handleMsgEvent(OTRCallbacks.OTRL_MSGEVENT_RCVDMSG_UNREADABLE, this, null);
               return null;
             }
@@ -670,6 +685,8 @@ public class ConnContext implements OTRContext {
               tlvs = new TLV().parse(res, end, res.length - end);
               stlv.tlvs = tlvs;
 
+              d("ConnContext.messageReceiving (found tlvs)", TLV.tlvsAsString(tlvs));
+
               /*
                * If the other side told us he's disconnected his private
                * connection, make a note of that so we don't try sending
@@ -677,42 +694,50 @@ public class ConnContext implements OTRContext {
                */
               OTRTLV tlv = new TLV().find(tlvs, TLV.DISCONNECTED);
               if (tlv != null) {
+                d("ConnContext.messageReceiving",
+                    "Remote side has told us to disconnect his private connection. Reset our OTR connection");
                 forceFinished();
+                stlv.msg = "Remote user has closed secure chat";
+                stlv.type = Message.MSG_TYPE_ERROR;
+                //TODO: Check if SMP states are possible with disconnect. Assuming not.
+                return stlv;
               }
 
               /* If TLVs contain SMP data, process it */
               int nextMsg = this.smstate.nextExpected;
               tlv = new TLV().find(tlvs, TLV.SMP1Q);
-              if (tlv != null && nextMsg == SM.EXPECT1) {
-                /*
-                 * We can only do the verification half now. We must wait for
-                 * the secret to be entered to continue.
-                 */
-                byte[] question = tlv.getValue();
-                int qlen = 0;
-                for (; qlen != question.length && question[qlen] != 0; qlen++) {
-                }
-                if (qlen == question.length)
-                  qlen = 0;
-                else
-                  qlen++;
-                byte[] input = new byte[question.length - qlen];
-                System.arraycopy(question, qlen, input, 0, question.length - qlen);
-                SM.step2a(this.smstate, input, 1, prov);
-                if (qlen != 0)
-                  qlen--;
-                byte[] plainq = new byte[qlen];
-                System.arraycopy(question, 0, plainq, 0, qlen);
-                if (this.smstate.smProgState != SM.PROG_CHEATED) {
-                  callback.handleSmpEvent(OTRCallbacks.OTRL_SMPEVENT_ASK_FOR_ANSWER, this, 25,
-                      new String(plainq));
+              if (tlv != null) {
+                if (nextMsg == SM.EXPECT1) {
+                  /*
+                   * We can only do the verification half now. We must wait for
+                   * the secret to be entered to continue.
+                   */
+                  byte[] question = tlv.getValue();
+                  int qlen = 0;
+                  for (; qlen != question.length && question[qlen] != 0; qlen++) {
+                  }
+                  if (qlen == question.length)
+                    qlen = 0;
+                  else
+                    qlen++;
+                  byte[] input = new byte[question.length - qlen];
+                  System.arraycopy(question, qlen, input, 0, question.length - qlen);
+                  SM.step2a(this.smstate, input, 1, prov);
+                  if (qlen != 0)
+                    qlen--;
+                  byte[] plainq = new byte[qlen];
+                  System.arraycopy(question, 0, plainq, 0, qlen);
+                  if (this.smstate.smProgState != SM.PROG_CHEATED) {
+                    callback.handleSmpEvent(OTRCallbacks.OTRL_SMPEVENT_ASK_FOR_ANSWER, this, 25,
+                        new String(plainq));
+                  } else {
+                    callback.handleSmpEvent(OTRCallbacks.OTRL_SMPEVENT_CHEATED, this, 0, null);
+                    this.smstate.nextExpected = SM.EXPECT1;
+                    this.smstate.smProgState = SM.PROG_OK;
+                  }
                 } else {
-                  callback.handleSmpEvent(OTRCallbacks.OTRL_SMPEVENT_CHEATED, this, 0, null);
-                  this.smstate.nextExpected = SM.EXPECT1;
-                  this.smstate.smProgState = SM.PROG_OK;
+                  callback.handleSmpEvent(OTRCallbacks.OTRL_SMPEVENT_ERROR, this, 0, null);
                 }
-              } else {
-                callback.handleSmpEvent(OTRCallbacks.OTRL_SMPEVENT_ERROR, this, 0, null);
               }
 
               tlv = new TLV().find(tlvs, TLV.SMP1);
@@ -737,80 +762,86 @@ public class ConnContext implements OTRContext {
               }
 
               tlv = new TLV().find(tlvs, TLV.SMP2);
-              if (tlv != null && nextMsg == SM.EXPECT2) {
-                byte[] nextmsg = SM.step3(this.smstate, tlv.getValue(), prov);
-                if (this.smstate.smProgState != SM.PROG_CHEATED) {
-                  /* Send msg with next smp msg content */
-                  OTRTLV sendtlv = new TLV(TLV.SMP3, nextmsg);
-                  OTRTLV[] stlvs = new OTRTLV[1];
-                  stlvs[0] = sendtlv;
-                  DataMessage dm = Proto.createData(this, new byte[0],
-                      Proto.MSGFLAGS_IGNORE_UNREADABLE, stlvs);
-                  byte[] senddata = dm.getContent();
-                  this.fragmentAndSend(new String(senddata), Policy.FRAGMENT_SEND_ALL, callback);
-                  this.smstate.nextExpected = SM.EXPECT4;
+              if (tlv != null) {
+                if (nextMsg == SM.EXPECT2) {
+                  byte[] nextmsg = SM.step3(this.smstate, tlv.getValue(), prov);
+                  if (this.smstate.smProgState != SM.PROG_CHEATED) {
+                    /* Send msg with next smp msg content */
+                    OTRTLV sendtlv = new TLV(TLV.SMP3, nextmsg);
+                    OTRTLV[] stlvs = new OTRTLV[1];
+                    stlvs[0] = sendtlv;
+                    DataMessage dm = Proto.createData(this, new byte[0],
+                        Proto.MSGFLAGS_IGNORE_UNREADABLE, stlvs);
+                    byte[] senddata = dm.getContent();
+                    this.fragmentAndSend(new String(senddata), Policy.FRAGMENT_SEND_ALL, callback);
+                    this.smstate.nextExpected = SM.EXPECT4;
+                  } else {
+                    callback.handleSmpEvent(OTRCallbacks.OTRL_SMPEVENT_CHEATED, this, 0, null);
+                    this.smstate.nextExpected = SM.EXPECT1;
+                    this.smstate.smProgState = SM.PROG_OK;
+                  }
                 } else {
-                  callback.handleSmpEvent(OTRCallbacks.OTRL_SMPEVENT_CHEATED, this, 0, null);
-                  this.smstate.nextExpected = SM.EXPECT1;
-                  this.smstate.smProgState = SM.PROG_OK;
+                  callback.handleSmpEvent(OTRCallbacks.OTRL_SMPEVENT_ERROR, this, 0, null);
                 }
-              } else if (tlv != null) {
-                callback.handleSmpEvent(OTRCallbacks.OTRL_SMPEVENT_ERROR, this, 0, null);
               }
 
               tlv = new TLV().find(tlvs, TLV.SMP3);
-              if (tlv != null && nextMsg == SM.EXPECT3) {
-                byte[] nextmsg = SM.step4(this.smstate, tlv.getValue(), prov);
-                /* Set trust level based on result */
-                if (this.smstate.smProgState == SM.PROG_SUCCEEDED) {
-                  this.setSmpTrust(callback, true);
-                } else {
-                  this.setSmpTrust(callback, false);
-                }
-                if (this.smstate.smProgState != SM.PROG_CHEATED) {
-                  /* Send msg with next smp msg content */
-                  OTRTLV[] stlvs = new TLV[1];
-                  stlvs[0] = new TLV(TLV.SMP4, nextmsg);
-                  DataMessage dm = Proto.createData(this, new byte[0],
-                      Proto.MSGFLAGS_IGNORE_UNREADABLE, stlvs);
-                  byte[] senddata = dm.getContent();
-                  this.fragmentAndSend(new String(senddata), Policy.FRAGMENT_SEND_ALL, callback);
-                  int succorfail = this.smstate.smProgState == SM.PROG_SUCCEEDED ? OTRCallbacks.OTRL_SMPEVENT_SUCCESS
-                      : OTRCallbacks.OTRL_SMPEVENT_FAILURE;
-                  callback.handleSmpEvent(succorfail, this, 100, null);
-                  this.smstate.nextExpected = SM.EXPECT1;
-                } else {
-                  callback.handleSmpEvent(OTRCallbacks.OTRL_SMPEVENT_CHEATED, this, 0, null);
-                  this.smstate.nextExpected = SM.EXPECT1;
-                  this.smstate.smProgState = SM.PROG_OK;
-                }
+              if (tlv != null) {
+                if (nextMsg == SM.EXPECT3) {
+                  byte[] nextmsg = SM.step4(this.smstate, tlv.getValue(), prov);
+                  /* Set trust level based on result */
+                  if (this.smstate.smProgState == SM.PROG_SUCCEEDED) {
+                    this.setSmpTrust(callback, true);
+                  } else {
+                    this.setSmpTrust(callback, false);
+                  }
+                  if (this.smstate.smProgState != SM.PROG_CHEATED) {
+                    /* Send msg with next smp msg content */
+                    OTRTLV[] stlvs = new TLV[1];
+                    stlvs[0] = new TLV(TLV.SMP4, nextmsg);
+                    DataMessage dm = Proto.createData(this, new byte[0],
+                        Proto.MSGFLAGS_IGNORE_UNREADABLE, stlvs);
+                    byte[] senddata = dm.getContent();
+                    this.fragmentAndSend(new String(senddata), Policy.FRAGMENT_SEND_ALL, callback);
+                    int succorfail = this.smstate.smProgState == SM.PROG_SUCCEEDED ? OTRCallbacks.OTRL_SMPEVENT_SUCCESS
+                        : OTRCallbacks.OTRL_SMPEVENT_FAILURE;
+                    callback.handleSmpEvent(succorfail, this, 100, null);
+                    this.smstate.nextExpected = SM.EXPECT1;
+                  } else {
+                    callback.handleSmpEvent(OTRCallbacks.OTRL_SMPEVENT_CHEATED, this, 0, null);
+                    this.smstate.nextExpected = SM.EXPECT1;
+                    this.smstate.smProgState = SM.PROG_OK;
+                  }
 
-              } else if (tlv != null) {
-                callback.handleSmpEvent(OTRCallbacks.OTRL_SMPEVENT_ERROR, this, 0, null);
+                } else {
+                  callback.handleSmpEvent(OTRCallbacks.OTRL_SMPEVENT_ERROR, this, 0, null);
+                }
               }
 
               tlv = new TLV().find(tlvs, TLV.SMP4);
-              if (tlv != null && nextMsg == SM.EXPECT4) {
+              if (tlv != null) {
+                if (nextMsg == SM.EXPECT4) {
 
-                SM.step5(this.smstate, tlv.getValue(), prov);
-                if (this.smstate.smProgState == SM.PROG_SUCCEEDED) {
-                  this.setSmpTrust(callback, true);
-                } else {
-                  this.setSmpTrust(callback, false);
-                }
-                if (this.smstate.smProgState != SM.PROG_CHEATED) {
-                  int succorfail = this.smstate.smProgState == SM.PROG_SUCCEEDED ? OTRCallbacks.OTRL_SMPEVENT_SUCCESS
-                      : OTRCallbacks.OTRL_SMPEVENT_FAILURE;
-                  callback.handleSmpEvent(succorfail, this, 100, null);
-                  this.smstate.nextExpected = SM.EXPECT1;
-                } else {
-                  callback.handleSmpEvent(OTRCallbacks.OTRL_SMPEVENT_CHEATED, this, 0, null);
-                  this.smstate.nextExpected = SM.EXPECT1;
-                  this.smstate.smProgState = SM.PROG_OK;
-                }
+                  SM.step5(this.smstate, tlv.getValue(), prov);
+                  if (this.smstate.smProgState == SM.PROG_SUCCEEDED) {
+                    this.setSmpTrust(callback, true);
+                  } else {
+                    this.setSmpTrust(callback, false);
+                  }
+                  if (this.smstate.smProgState != SM.PROG_CHEATED) {
+                    int succorfail = this.smstate.smProgState == SM.PROG_SUCCEEDED ? OTRCallbacks.OTRL_SMPEVENT_SUCCESS
+                        : OTRCallbacks.OTRL_SMPEVENT_FAILURE;
+                    callback.handleSmpEvent(succorfail, this, 100, null);
+                    this.smstate.nextExpected = SM.EXPECT1;
+                  } else {
+                    callback.handleSmpEvent(OTRCallbacks.OTRL_SMPEVENT_CHEATED, this, 0, null);
+                    this.smstate.nextExpected = SM.EXPECT1;
+                    this.smstate.smProgState = SM.PROG_OK;
+                  }
 
-              } else if (tlv != null) {
-                callback.handleSmpEvent(OTRCallbacks.OTRL_SMPEVENT_ERROR, this, 0, null);
+                } else {
+                  callback.handleSmpEvent(OTRCallbacks.OTRL_SMPEVENT_ERROR, this, 0, null);
+                }
               }
 
               tlv = new TLV().find(tlvs, TLV.SMP_ABORT);

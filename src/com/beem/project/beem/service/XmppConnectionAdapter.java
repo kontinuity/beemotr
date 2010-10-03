@@ -77,6 +77,7 @@ import com.beem.project.beem.service.aidl.IXmppConnection;
 import com.beem.project.beem.ui.ChangeStatus;
 import com.beem.project.beem.ui.Subscription;
 import com.beem.project.beem.utils.BeemBroadcastReceiver;
+import com.beem.project.beem.utils.CryptWarmer;
 import com.beem.project.beem.utils.Status;
 
 /**
@@ -238,6 +239,7 @@ public class XmppConnectionAdapter extends IXmppConnection.Stub {
       mService.initJingle(mAdaptee);
       
       mService.setOwnerJID(this.getAdaptee().getUser());
+      new CryptWarmer().execute(this.getAdaptee().getUser());
 
       mApplication.setConnected(true);
       changeStatus(Status.CONTACT_STATUS_AVAILABLE,

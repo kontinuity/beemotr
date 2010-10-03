@@ -35,7 +35,7 @@ public class JCASHA256 extends ca.uwaterloo.crysp.otr.crypt.SHA256 {
   public JCASHA256() {
     super();
     try {
-      sha = MessageDigest.getInstance("SHA256");
+      sha = MessageDigest.getInstance("SHA-256");
     } catch (NoSuchAlgorithmException e) {
       e.printStackTrace();
     }
