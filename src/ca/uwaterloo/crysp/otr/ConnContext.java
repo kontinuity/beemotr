@@ -405,10 +405,13 @@ public class ConnContext implements OTRContext {
         }
 
       case MsgState.ST_FINISHED:
+        d("ConnContext.messageSending", "Finished secure connection", callback);
         callback.handleMsgEvent(OTRCallbacks.OTRL_MSGEVENT_CONNECTION_ENDED, this, null);
         String ret = new String(new ErrorMessage("").getContent());
         if (fragPolicy == Policy.FRAGMENT_SEND_SKIP)
           return ret;
+        
+        d("ConnContext.messageSending", "Sending message to buddy who has closed secure connection", ret);
         return this.fragmentAndSend(ret, fragPolicy, callback);
     }
     return null;
@@ -699,7 +702,8 @@ public class ConnContext implements OTRContext {
                 forceFinished();
                 stlv.msg = "Remote user has closed secure chat";
                 stlv.type = Message.MSG_TYPE_ERROR;
-                //TODO: Check if SMP states are possible with disconnect. Assuming not.
+                // TODO: Check if SMP states are possible with disconnect.
+                // Assuming not.
                 return stlv;
               }
 
@@ -935,7 +939,7 @@ public class ConnContext implements OTRContext {
   void forceFinished() {
     this.msgState.curState = MsgState.ST_FINISHED;
     this.activeFingerprint = null;
-    this.sessionId = null;
+    this.sessionId = new byte[20];
     this.fragment = null;
     this.fragment_k = 0;
     this.fragment_n = 0;

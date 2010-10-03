@@ -125,12 +125,11 @@ public class OTRChatAdapter extends ChatAdapter {
     public void handleMsgEvent(int msg_event, OTRContext context, String message) {
       switch (msg_event) {
         case OTRCallbacks.OTRL_ERRCODE_MSG_NOT_IN_PRIVATE:
-          try {
-            otrChatAdapter.addMessage(new Message(this.otrChatAdapter.getParticipant().getJID(),
-                Message.MSG_TYPE_ERROR));
-          } catch (RemoteException e) {
-            e("DefaultOTRCallbacks.handleMsgEvent", e, msg_event, context, message);
-          }
+          otrChatAdapter.addMessage(new Message(
+              "User has sent a message while not in private mode", Message.MSG_TYPE_ERROR));
+          break;
+        default:
+          super.handleMsgEvent(msg_event, context, message);
           break;
       }
     }
