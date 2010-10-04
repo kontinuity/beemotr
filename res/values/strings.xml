@@ -252,12 +252,15 @@
 	<string name="chat_menu_contacts_list">Contacts list</string>
 	<string name="chat_menu_change_chat">Switch chat</string>
 	<string name="chat_dialog_change_chat_title">Opened chats</string>
+	<string name="chat_menu_otr_options">OTR options</string>
 	<string name="chat_menu_close_chat">Close this chat</string>
 	<string name="chat_no_more_chats">No more active chats</string>
 	<string name="chat_state_composing">is composing a message</string>
 	<string name="chat_state_gone">has left the conversation</string>
 	<string name="chat_state_active">pays attention to the conversation</string>
 	<string name="chat_state_inactive">is doing another thing</string>
+	
+	<string name="otr_options_dialog_title">OTR options</string>
 
 	<string name="contact_status_msg_available">Available</string>
 	<string name="contact_status_msg_available_chat">Available to chat</string>

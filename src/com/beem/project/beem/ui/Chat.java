@@ -54,8 +54,10 @@ import java.util.Map;
 import org.jivesoftware.smack.util.StringUtils;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ComponentName;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -83,6 +85,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.beem.project.beem.R;
 import com.beem.project.beem.service.Contact;
@@ -283,6 +286,19 @@ public class Chat extends Activity implements OnKeyListener {
         } catch (RemoteException e) {
           Log.e(TAG, e.getMessage());
         }
+        break;
+      case R.id.chat_menu_otr_options:
+        final CharSequence[] items = {"Initiate Encrypted OTR Chat", "Show Details", "Refuse plaintext", "Disable encryption"};
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.id.otr_options_dialog_title);
+        builder.setItems(items, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int item) {
+                Toast.makeText(getApplicationContext(), items[item], Toast.LENGTH_SHORT).show();
+            }
+        });
+        AlertDialog alert = builder.create();
+        alert.show();
         break;
       case R.id.chat_menu_close_chat:
         try {
